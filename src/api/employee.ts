@@ -35,3 +35,26 @@ request({
   'method': 'post',
   'params': {id: params.id}
 })
+
+// 新增员工
+export const addEmployee = (params: any) =>
+request({
+  'url': `/employee`,
+  'method': 'post',
+  'data': params
+})
+
+// 根据id查询员工
+export const getEmployeeById = (id: number) =>
+request({
+  'url': `/employee/${id}`,
+  'method': 'get'
+})
+
+// 修改员工
+export const updateEmployee = (params: any) =>
+request({
+  'url': `/employee`,
+  'method': 'put',
+  'data': params
+})

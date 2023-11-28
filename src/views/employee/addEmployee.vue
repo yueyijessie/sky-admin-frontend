@@ -33,9 +33,95 @@
 </template>
 
 <script lang="ts">
-
+import {addEmployee, getEmployeeById, updateEmployee} from '@/api/employee'
 export default {
-  
+  data(){
+    return{
+      optType: 'add',
+      ruleForm: {
+        username: '',
+        name: '',
+        phone: '',
+        sex: '1',
+        idNumber: ''
+      },
+      rules: {
+        username: [{required:true, message:'请输入员工账号',trigger:'blur'}],
+        name: [{required:true, message:'请输入员工姓名',trigger:'blur'}],
+        phone: [{required:true, trigger:'blur', 
+          // 校验手机号的常用方法
+          validator:(rule,value,callback)=>{
+            // 手机号的正则校验
+            if (value === '' || (!/^1(3|4|5|6|7|8)\d{9}$/.test(value))) {
+              // 回调弹出提示
+              callback(new Error('请输入正确的手机号！'))
+            } else {
+              callback()
+            }
+        }}],
+        idNumber: [{required:true, trigger:'blur',
+          validator:(rule,value,callback)=>{
+            // 身份证号的正则校验
+            if (value === '' || (!/(^\d{15}$)|(^\d{18}$)|(^\d{17}(X|x)$)/.test(value))) {
+              // 回调弹出提示
+              callback(new Error('请输入正确的身份证号！'))
+            } else {
+              callback()
+            }
+        }}]
+      }
+    }
+  },
+  created(){
+    this.optType = this.$route.query.id ? 'update' : 'add'
+    if (this.optType === 'update'){
+      getEmployeeById(this.$route.query.id).then(res =>{
+        if (res.data.code === 1){
+          this.ruleForm = res.data.data
+        }
+      })
+    }
+  },
+  methods:{
+    submitForm(formName, isContinue){
+      // 进行表单校验,确保没有红色提示
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          // 表单校验通过，发送ajax请求
+          if (this.optType === 'add'){
+            addEmployee(this.ruleForm).then((res)=>{
+              if (res.data.code === 1){
+                this.$message.success('员工添加成功')
+                if (isContinue) {
+                  this.ruleForm = {
+                    username: '',
+                    name: '',
+                    phone: '',
+                    sex: '1',
+                    idNumber: ''
+                  }
+                } else {
+                  this.$router.push('/employee')
+                }
+              } else {
+                this.$message.error(res.data.msg)
+              }
+            })
+          } else {
+            updateEmployee(this.ruleForm).then((res) => {
+              if (res.data.code === 1){
+                this.$message.success('员工修改成功')
+                this.$router.push('/employee')
+              }
+            })
+          }
+        } else {
+          this.$message.error('请按照提示修改信息')
+        }
+      })
+    }
+  }
+
 }
 </script>
 

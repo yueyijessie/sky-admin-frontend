@@ -5,7 +5,7 @@
         <label style="margin-right: 5px;">员工姓名：</label>
         <el-input v-model="name" placeholder="请输入员工姓名" style="width: 15%;" />
         <el-button type="primary" style="margin-left: 25px;" @click="pageQuery" class="normal-btn continue">查询</el-button>
-        <el-button type="primary" style="float:right">+ 添加员工</el-button>
+        <el-button type="primary" style="float:right" @click="() => this.$router.push('/employee/add')">+ 添加员工</el-button>
       </div>
       <el-table
         v-loading="loading"
@@ -44,7 +44,10 @@
         <el-table-column
           label="操作" align="center"> 
           <template slot-scope="scope">
-            <el-button type="text" size="small" class="blueBug">修改</el-button>
+            <el-button type="text" size="small" class="blueBug" @click="editEmployee(scope.row.id)"
+            :class="{
+                'disabled-text': scope.row.username === 'admin'
+              }">修改</el-button>
             <el-button type="text" size="small"
               class="non"
               :class="{
@@ -127,6 +130,16 @@ export default  {
           this.$message.success('员工的账号状态修改成功！')
           this.pageQuery()
         }
+      })
+    },
+    editEmployee(empId) {
+      // if (empId === 1){
+      //   this.$message.error('admin为系统管理员账号，不能修改！')
+      //   return
+      // }
+      this.$router.push({
+        path: '/employee/add',
+        query: {id: empId}
       })
     }
   }
