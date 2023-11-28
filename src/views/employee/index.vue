@@ -4,13 +4,14 @@
       <div class="tableBar">
         <label style="margin-right: 5px;">员工姓名：</label>
         <el-input v-model="name" placeholder="请输入员工姓名" style="width: 15%;" />
-        <el-button type="primary" style="margin-left: 25px;" @click="pageQuery">查询</el-button>
+        <el-button type="primary" style="margin-left: 25px;" @click="pageQuery" class="normal-btn continue">查询</el-button>
         <el-button type="primary" style="float:right">+ 添加员工</el-button>
       </div>
       <el-table
+        v-loading="loading"
         :data="records"
         stripe
-        style="width: 100%">
+        style="width: 100%" class="tableBox">
         <el-table-column
           prop="name"
           label="员工姓名"
@@ -29,7 +30,11 @@
           prop="status"
           label="账号状态">
           <template slot-scope="scope">
+            <div
+              class="tableColumn-status"
+              :class="{ 'stop-use': String(scope.row.status) === '0' }">
             {{ scope.row.status === 0 ? '禁用' : '启用'}}
+            </div>
           </template>
         </el-table-column>
         <el-table-column
@@ -37,10 +42,19 @@
           label="最后操作时间">
         </el-table-column>
         <el-table-column
-          label="操作">
+          label="操作" align="center"> 
           <template slot-scope="scope">
-            <el-button type="text">修改</el-button>
-            <el-button type="text">{{ scope.row.status === 1 ? '禁用' : '启用'}}</el-button>
+            <el-button type="text" size="small" class="blueBug">修改</el-button>
+            <el-button type="text" size="small"
+              class="non"
+              :class="{
+                'disabled-text': scope.row.username === 'admin',
+                blueBug: scope.row.status == '0',
+                delBut: scope.row.status != '0',
+              }"
+              @click="handleStatus(scope.row.id, scope.row.status)">
+              {{ scope.row.status === 1 ? '禁用' : '启用'}}
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -58,7 +72,7 @@
   </div>
 </template>
 <script lang="ts">
-import {getEmployeeList} from '@/api/employee'
+import {getEmployeeList, enableOrDisableEmployee} from '@/api/employee'
 export default  {
   data() {
     return {
@@ -66,7 +80,8 @@ export default  {
       total: 0,
       page: 1,
       pageSize: 5,
-      name: ''
+      name: '',
+      loading: true
     }
   },
   created(){
@@ -86,6 +101,7 @@ export default  {
         if (res.data.code === 1){
           this.total = res.data.data.total
           this.records = res.data.data.records
+          this.loading = false
         }
       }).catch(err => {
         this.$message.error('请求出错了：' + err.message)
@@ -99,6 +115,19 @@ export default  {
     handleCurrentChange(val) {
       this.page = val
       this.pageQuery()
+    },
+    handleStatus(empId, status){
+      const params = {
+        id: empId,
+        status: !status ? 1 : 0
+      }
+      console.log(params)
+      enableOrDisableEmployee(params).then(res =>{
+        if (res.data.code === 1){
+          this.$message.success('员工的账号状态修改成功！')
+          this.pageQuery()
+        }
+      })
     }
   }
 }

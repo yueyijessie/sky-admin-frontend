@@ -27,3 +27,11 @@ request({
   'method': 'get',
  params
 })
+
+// 启用禁用员工
+export const enableOrDisableEmployee = (params: any) =>
+request({
+  'url': `/employee/status/${params.status}`,
+  'method': 'post',
+  'params': {id: params.id}
+})
