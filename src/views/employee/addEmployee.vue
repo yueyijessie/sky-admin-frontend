@@ -1,7 +1,7 @@
 <template>
   <div class="addBrand-container">
     <div class="container">
-      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="180px">
+      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="180px" v-loading="loading">
         <el-form-item label="账号" prop="username">
           <el-input v-model="ruleForm.username"></el-input>
         </el-form-item>
@@ -37,6 +37,7 @@ import {addEmployee, getEmployeeById, updateEmployee} from '@/api/employee'
 export default {
   data(){
     return{
+      loading: true,
       optType: 'add',
       ruleForm: {
         username: '',
@@ -78,8 +79,11 @@ export default {
       getEmployeeById(this.$route.query.id).then(res =>{
         if (res.data.code === 1){
           this.ruleForm = res.data.data
+          this.loading = false
         }
       })
+    } else {
+      this.loading = false
     }
   },
   methods:{
