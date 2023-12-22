@@ -15,7 +15,7 @@
                      :value="item.id" />
         </el-select>
         <label style="margin-right: 10px; margin-left: 20px">售卖状态：</label>
-        <el-select v-model="mealStatus"
+        <el-select v-model="saleStatusVariable"
                    style="width: 14%"
                    placeholder="请选择"
                    clearable>
@@ -108,14 +108,16 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination v-if="total > 10"
-                     class="pageList"
-                     :page-sizes="[10, 20, 30, 40]"
-                     :page-size="pageSize"
-                     layout="total, sizes, prev, pager, next, jumper"
-                     :total="total"
-                     @size-change="handleSizeChange"
-                     @current-change="handleCurrentChange" />
+      <el-pagination
+        class="pageList"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="page"
+        :page-sizes="[5, 10]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
 
     </div>
   </div>
@@ -134,6 +136,7 @@ export default {
       name: '',
       loading: true,
       mealStatus: '',
+      saleStatusVariable:'',
       saleStatus: [ { value: 0, label: '停售'},
                     { value: 1, label: '启售'} ],
       mealCategoryList:[],
@@ -142,15 +145,21 @@ export default {
     }
   },
   created(){
-    getCategoryByType({type: 2}).then(res => {
-      if (res.data.code === 1) {
-        this.mealCategoryList = res.data.data
-        console.log(this.mealCategoryList)
-      }
-    })
-    this.pageQuery()
+    this.init()
   },
   methods:{
+    init(){
+      this.getCategory()
+      this.pageQuery()
+    },
+    getCategory(){
+      getCategoryByType({type: 2}).then(res => {
+        if (res.data.code === 1) {
+          this.mealCategoryList = res.data.data
+          console.log(this.mealCategoryList)
+        }
+      })
+    },
     // 分页查询
     pageQuery(){
       // 准备请求参数
@@ -158,7 +167,7 @@ export default {
         name: this.name,
         page: this.page,
         pageSize: this.pageSize,
-        status: this.mealStatus,
+        status: this.saleStatusVariable,
         categoryId: this.categoryId
       }
       // 发送ajax请求，访问后端服务，获取分页数据
@@ -191,6 +200,7 @@ export default {
           .then(res => {
             if (res && res.data && res.data.code === 1) {
               this.$message.success('删除成功！')
+              this.init()
             } else {
               this.$message.error(res.data.msg)
             }
@@ -207,17 +217,49 @@ export default {
       })
       this.checkList = checkArr
     },
-    statusHandle(){},
-    isSearch(){},
+    statusHandle(row: any) {
+      let params: any = {}
+      if (typeof row === 'string') {
+        if (this.checkList.length === 0) {
+          this.$message.error('批量操作，请先勾选操作套餐！')
+          return false
+        }
+        params.id = this.checkList.join(',')
+        params.status = row
+      } else {
+        params.id = row.id
+        params.status = row.status ? '0' : '1'
+      }
+      this.mealStatus = params
+      this.$confirm('确认更改该套餐状态?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 起售停售---批量起售停售接口
+        enableOrDisableSetmeal(this.mealStatus)
+          .then(res => {
+            if (res && res.data && res.data.code === 1) {
+              this.$message.success('套餐状态已经更改成功！')
+              this.init()
+            } else {
+              this.$message.error(res.data.msg)
+            }
+          })
+          .catch(err => {
+            this.$message.error('请求出错了：' + err.message)
+          })
+      })
+    },
     handleSizeChange(val) {
       this.pageSize = val
       this.page = 1
-      this.pageQuery()
+      this.init()
     },
     handleCurrentChange(val) {
       this.page = val
-      this.pageQuery()
-    },
+      this.init()
+    }
 
 
 
