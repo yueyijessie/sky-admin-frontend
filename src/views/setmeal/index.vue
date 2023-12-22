@@ -173,8 +173,8 @@ export default {
         this.$message.error('请求出错了：' + err.message)
       })
     },
-    editMeal(){
-      this.$router.push({ path: '/setmeal/add' })
+    editMeal(st: string){
+      this.$router.push({ path: '/setmeal/add', query: { id: st } })
     },
     deleteHandle(type: string, id: any) {
       if (type === '批量' && id === null) {
