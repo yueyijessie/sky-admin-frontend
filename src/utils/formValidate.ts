@@ -81,6 +81,7 @@ export const pastWeek = () => {
   // let toData = new Date(new Date().toLocaleDateString()).getTime();
   let toData = new Date().getTime();
   var nowDayOfWeek = new Date().getDay();
+  nowDayOfWeek = nowDayOfWeek == 0 ? 7 : nowDayOfWeek; // 周日返回值为0,改为7
   const weekStartData = toData - (nowDayOfWeek - 1) * 24 * 60 * 60 * 1000;
   const weekEndData = toData + (7 - nowDayOfWeek) * 24 * 60 * 60 * 1000;
   let weekStart = dateFormat("YYYY-mm-dd", weekStartData);
